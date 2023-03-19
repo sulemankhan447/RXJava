@@ -24,6 +24,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     private TextView textView;
+
+    private Disposable disposable;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +65,20 @@ public class MainActivity extends AppCompatActivity {
                  * Call when observer successfully subscribes to observable
                  */
                 Log.i("RxJava","onSubscribe Invoked on "+Thread.currentThread().getName());
+
+                /**
+                 * If user has started screen where we do api call and user
+                 * presses back btn, now activity is detsoryed, but api call is still in progress
+                 * and once api call returns response
+                 * it will try to update view
+                 * as observable thinks, observer is still observing data changed
+                 * but thats not the case, observable does not know that observer is destroyed
+                 * so we have to stop observable from publising data changes to avoid
+                 * memory leak or crash
+                 * this can be done using disposable object
+                 * by using disposable object , we will dispose things
+                 */
+                disposable = d;
             }
 
             @Override
@@ -99,5 +115,11 @@ public class MainActivity extends AppCompatActivity {
 
         myObservable.subscribe(myObserver);
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        disposable.dispose();
     }
 }
