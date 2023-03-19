@@ -3,6 +3,7 @@ package com.anushka.rxdemo1;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -10,6 +11,7 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Observer;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.observers.DisposableObserver;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -27,6 +29,9 @@ public class MainActivity extends AppCompatActivity {
      *
      */
     private DisposableObserver<String> myObserver;
+    private DisposableObserver<String> myObserver2;
+
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
 
 
     private TextView textView;
@@ -114,7 +119,6 @@ public class MainActivity extends AppCompatActivity {
 //        };
 
         myObserver = new DisposableObserver<String>(){
-
             /**
              * in disposable observer, we dont have
              * onsubscribe method which was used to get disposable object
@@ -139,6 +143,33 @@ public class MainActivity extends AppCompatActivity {
 
             }
         };
+        myObserver2 = new DisposableObserver<String>(){
+            /**
+             * in disposable observer, we dont have
+             * onsubscribe method which was used to get disposable object
+             * here instead we can direcly use disposable object in on destory
+             * refer onDestroy for more details
+             */
+
+
+
+            @Override
+            public void onNext(@NonNull String s) {
+
+                Toast.makeText(getApplicationContext(),s,Toast.LENGTH_LONG).show();
+
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        };
 
         /**
          * Subscribing observer to observable
@@ -146,7 +177,10 @@ public class MainActivity extends AppCompatActivity {
          *
          */
 
+        compositeDisposable.add(myObserver);
         myObservable.subscribe(myObserver);
+        compositeDisposable.add(myObserver2);
+        myObservable.subscribe(myObserver2);
 
     }
 
@@ -161,6 +195,22 @@ public class MainActivity extends AppCompatActivity {
         /**
          * Using Disposable observer for terminating the subscription
          */
-        myObserver.dispose();
+//        myObserver.dispose();
+        /**
+         * If we have many observers to dispose,
+         * we have to manyally dispose them each
+         * and if they are more,
+         * than there is possibility of forgetting them to dispose
+         * which can create memory leak or crash
+         * so preferred method is composite disposable
+         *
+         */
+//        myObserver2.dispose();
+        /**
+         * Instead of disposing each disposable observer
+         * we can use composite diposable with clear method
+         * so it will dispose all observers and also clear container which is containing all disposables
+         */
+        compositeDisposable.clear();
     }
 }
