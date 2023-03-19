@@ -6,10 +6,13 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Observer;
+import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -33,13 +36,28 @@ public class MainActivity extends AppCompatActivity {
          * one observer observing it
          *
          */
+
+        /**
+         * by writing this,
+         * we are telling rx java to do subscription i.e receiving data or some other operator work
+         * on background thread
+         * so all computation of operators will be done on io thread
+         */
+        myObservable.subscribeOn(Schedulers.io());
+
+        /**
+         * once all work is done of operators, our observer will receive data emission
+         * so that emission we need on ui thread which is main thread
+         * so we are telling rx java to observe on main thread
+         */
+        myObservable.observeOn(AndroidSchedulers.mainThread());
         myObserver =  new Observer<String>() {
             @Override
             public void onSubscribe(@NonNull Disposable d) {
                 /**
                  * Call when observer successfully subscribes to observable
                  */
-                Log.i("RxJava","onSubscribe Invoked");
+                Log.i("RxJava","onSubscribe Invoked on "+Thread.currentThread().getName());
             }
 
             @Override
@@ -47,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
                 /**
                  * Called when data emission is received
                  */
-                Log.i("RxJava","onNext Invoked");
+                Log.i("RxJava","onNext Invoked on "+Thread.currentThread().getName());
                 textView.setText(s);
             }
 
@@ -56,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
                 /**
                  * Call when we receive error during emission of data
                  */
-                Log.i("RxJava","onError Invoked");
+                Log.i("RxJava","onError Invoked on "+Thread.currentThread().getName());
             }
 
             @Override
@@ -64,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
                 /**
                  * Called when emission of data is completed
                  */
-                Log.i("RxJava","onComplete Invoked");
+                Log.i("RxJava","onComplete Invoked on "+Thread.currentThread().getName());
             }
         };
 
