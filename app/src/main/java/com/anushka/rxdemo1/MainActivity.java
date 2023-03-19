@@ -1,17 +1,17 @@
 package com.anushka.rxdemo1;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Observer;
-import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.observers.DisposableObserver;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 
@@ -20,12 +20,18 @@ public class MainActivity extends AppCompatActivity {
     private String greeting="Hello From RxJava";
 
     private Observable<String> myObservable;
-    private Observer<String> myObserver;
+
+    /**
+     * Disposable observer is abstract class which implements observer and disposable
+     * disposable observer is more efficient than observable if we have more than one observer in our activity/fragment
+     *
+     */
+    private DisposableObserver<String> myObserver;
 
 
     private TextView textView;
 
-    private Disposable disposable;
+//    private Disposable disposable;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,52 +64,79 @@ public class MainActivity extends AppCompatActivity {
          * so we are telling rx java to observe on main thread
          */
         myObservable.observeOn(AndroidSchedulers.mainThread());
-        myObserver =  new Observer<String>() {
-            @Override
-            public void onSubscribe(@NonNull Disposable d) {
-                /**
-                 * Call when observer successfully subscribes to observable
-                 */
-                Log.i("RxJava","onSubscribe Invoked on "+Thread.currentThread().getName());
+//        myObserver =  new Observer<String>() {
+//            @Override
+//            public void onSubscribe(@NonNull Disposable d) {
+//                /**
+//                 * Call when observer successfully subscribes to observable
+//                 */
+//                Log.i("RxJava","onSubscribe Invoked on "+Thread.currentThread().getName());
+//
+//                /**
+//                 * If user has started screen where we do api call and user
+//                 * presses back btn, now activity is detsoryed, but api call is still in progress
+//                 * and once api call returns response
+//                 * it will try to update view
+//                 * as observable thinks, observer is still observing data changed
+//                 * but thats not the case, observable does not know that observer is destroyed
+//                 * so we have to stop observable from publising data changes to avoid
+//                 * memory leak or crash
+//                 * this can be done using disposable object
+//                 * by using disposable object , we will dispose things
+//                 */
+//                disposable = d;
+//            }
+//
+//            @Override
+//            public void onNext(@NonNull String s) {
+//                /**
+//                 * Called when data emission is received
+//                 */
+//                Log.i("RxJava","onNext Invoked on "+Thread.currentThread().getName());
+//                textView.setText(s);
+//            }
+//
+//            @Override
+//            public void onError(@NonNull Throwable e) {
+//                /**
+//                 * Call when we receive error during emission of data
+//                 */
+//                Log.i("RxJava","onError Invoked on "+Thread.currentThread().getName());
+//            }
+//
+//            @Override
+//            public void onComplete() {
+//                /**
+//                 * Called when emission of data is completed
+//                 */
+//                Log.i("RxJava","onComplete Invoked on "+Thread.currentThread().getName());
+//            }
+//        };
 
-                /**
-                 * If user has started screen where we do api call and user
-                 * presses back btn, now activity is detsoryed, but api call is still in progress
-                 * and once api call returns response
-                 * it will try to update view
-                 * as observable thinks, observer is still observing data changed
-                 * but thats not the case, observable does not know that observer is destroyed
-                 * so we have to stop observable from publising data changes to avoid
-                 * memory leak or crash
-                 * this can be done using disposable object
-                 * by using disposable object , we will dispose things
-                 */
-                disposable = d;
-            }
+        myObserver = new DisposableObserver<String>(){
+
+            /**
+             * in disposable observer, we dont have
+             * onsubscribe method which was used to get disposable object
+             * here instead we can direcly use disposable object in on destory
+             * refer onDestroy for more details
+             */
+
+
 
             @Override
             public void onNext(@NonNull String s) {
-                /**
-                 * Called when data emission is received
-                 */
-                Log.i("RxJava","onNext Invoked on "+Thread.currentThread().getName());
-                textView.setText(s);
+
             }
 
             @Override
             public void onError(@NonNull Throwable e) {
-                /**
-                 * Call when we receive error during emission of data
-                 */
-                Log.i("RxJava","onError Invoked on "+Thread.currentThread().getName());
+
             }
 
             @Override
             public void onComplete() {
-                /**
-                 * Called when emission of data is completed
-                 */
-                Log.i("RxJava","onComplete Invoked on "+Thread.currentThread().getName());
+
             }
         };
 
@@ -123,6 +156,11 @@ public class MainActivity extends AppCompatActivity {
         /**
          * using disposable to terminate the subscription
          */
-        disposable.dispose();
+//        disposable.dispose();
+
+        /**
+         * Using Disposable observer for terminating the subscription
+         */
+        myObserver.dispose();
     }
 }
