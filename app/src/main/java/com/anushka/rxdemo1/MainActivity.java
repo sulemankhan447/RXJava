@@ -211,6 +211,14 @@ public class MainActivity extends AppCompatActivity {
          * we can use composite diposable with clear method
          * so it will dispose all observers and also clear container which is containing all disposables
          */
+
+        /**
+         * if we use dipose in composite disposable,
+         * than it will dispose observables
+         * but after that we cannot add any disposables in that
+         * so we should use clear for composite disposable
+         * as it will dispose and also clear all disposales in composite disposable
+         */
         compositeDisposable.clear();
     }
 }
