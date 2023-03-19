@@ -43,6 +43,11 @@ public class MainActivity extends AppCompatActivity {
          * on background thread
          * so all computation of operators will be done on io thread
          */
+        /**
+         * Schedulers basically manages thread pool which has one or more threads
+         * when we request schedule to work with some thread, it picks that thread from thread pool
+         * and does work for us
+         */
         myObservable.subscribeOn(Schedulers.io());
 
         /**
